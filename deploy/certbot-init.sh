@@ -4,12 +4,16 @@
 #   sudo ./deploy/certbot-init.sh <domain> <email>
 #   sudo ./deploy/certbot-init.sh --staging <domain> <email>
 #
-# Syncs nginx from deploy/nginx/llm-deploy.conf: HTTP-only until certs exist, then HTTP+HTTPS.
+# Syncs nginx from deploy/nginx/fast-deploy-llm.conf: HTTP-only until certs exist, then HTTP+HTTPS.
+#
+# Certbot reports paths like /etc/nginx/sites-enabled/llm-deploy when that OLD site still owns
+# server_name for your domain. Remove stale sites and reload nginx before/after:
+#   sudo rm -f /etc/nginx/sites-enabled/llm-deploy /etc/nginx/sites-available/llm-deploy
 set -euo pipefail
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-NGINX_SRC="$REPO_ROOT/deploy/nginx/llm-deploy.conf"
-NGINX_SITE="/etc/nginx/sites-available/llm-deploy"
+NGINX_SRC="$REPO_ROOT/deploy/nginx/fast-deploy-llm.conf"
+NGINX_SITE="/etc/nginx/sites-available/fast-deploy-llm"
 
 usage() {
   cat <<'EOF'
@@ -101,10 +105,10 @@ apply_nginx_from_repo() {
   rm -f "$tmp_full"
 }
 
-if [[ ! -f "$NGINX_SITE" ]] || [[ ! -e /etc/nginx/sites-enabled/llm-deploy ]]; then
+if [[ ! -f "$NGINX_SITE" ]] || [[ ! -e /etc/nginx/sites-enabled/fast-deploy-llm ]]; then
   echo "==> Installing nginx site from repo"
   apply_nginx_from_repo
-  ln -sf "$NGINX_SITE" /etc/nginx/sites-enabled/llm-deploy
+  ln -sf "$NGINX_SITE" /etc/nginx/sites-enabled/fast-deploy-llm
   if [[ -e /etc/nginx/sites-enabled/default ]]; then
     echo "WARN: /etc/nginx/sites-enabled/default still enabled — disable if port 80 conflicts." >&2
   fi

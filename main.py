@@ -25,6 +25,23 @@ from core import usage_log as usage_log_core
 logger = logging.getLogger(__name__)
 
 
+def _configure_logfile_txt() -> None:
+    """Ensure logs/logfile.txt exists and receive loguru lines (rotation on size)."""
+    usage_log_core.LOG_DIR.mkdir(parents=True, exist_ok=True)
+    log_path = usage_log_core.LOG_DIR / "logfile.txt"
+    log_path.touch(exist_ok=True)
+    loguru.logger.add(
+        str(log_path),
+        rotation="10 MB",
+        retention=4,
+        encoding="utf-8",
+        level=settings.LOGGING_LEVEL.upper(),
+    )
+
+
+_configure_logfile_txt()
+
+
 @asynccontextmanager
 async def _lifespan(app: fastapi.FastAPI):
     usage_log_core.LOG_DIR.mkdir(parents=True, exist_ok=True)

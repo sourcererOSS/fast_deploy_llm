@@ -1,0 +1,17 @@
+[Unit]
+Description=LLM Deploy — OpenAI-compatible Bedrock proxy (uvicorn in screen)
+After=network.target
+
+[Service]
+Type=forking
+User=__DEPLOY_USER__
+Group=__DEPLOY_USER__
+WorkingDirectory=__REPO_ROOT__
+ExecStart=/usr/bin/screen -dmS fast-deploy-llm bash -lc "source __VENV__/bin/activate && exec __VENV__/bin/uvicorn main:backend_app --host 0.0.0.0 --port 8000"
+ExecStop=/usr/bin/screen -S fast-deploy-llm -X quit
+
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

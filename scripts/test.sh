@@ -3,8 +3,12 @@
 set -euo pipefail
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+U="${SUDO_USER:-${USER:-$(id -un)}}"
+HOME_DEPLOY="$(getent passwd "$U" | cut -d: -f6)"
+HOME_DEPLOY="${HOME_DEPLOY:-$HOME}"
+VENV="${VENV:-$HOME_DEPLOY/.venv}"
 # shellcheck source=/dev/null
-[[ -f "$REPO_ROOT/.venv/bin/activate" ]] && source "$REPO_ROOT/.venv/bin/activate"
+[[ -f "$VENV/bin/activate" ]] && source "$VENV/bin/activate"
 
 NGINX_BASE="${NGINX_BASE:-http://127.0.0.1}"
 BACKEND_BASE="${BACKEND_BASE:-http://127.0.0.1:8000}"

@@ -18,7 +18,7 @@ Run it yourself, point any OpenAI-compatible client at it, and keep **API keys**
 |----------|----------------|
 | **Cursor** | In model / OpenAI-compatible provider settings, set **Base URL** to `https://<your-host>/api/v1` (or `http://127.0.0.1:4000/api/v1` locally) and **API key** to `BEDROCK_ENDPOINT_API_KEY` or an admin-issued `sk-…` key. |
 | **Continue.dev** | Point the OpenAI-compatible endpoint at the same base URL; use the same header key as above. |
-| **Self-hosted “OpenAI API” on Bedrock** | Deploy behind nginx + systemd (`scripts/deploy.sh`); clients use `/api/v1/chat/completions` and `/api/v1/models` like the OpenAI API, without calling OpenAI. |
+| **Self-hosted “OpenAI API” on Bedrock** | Run uvicorn (systemd, screen, or manual); optionally put **nginx** + **certbot** in front yourself; clients use `/api/v1/chat/completions` and `/api/v1/models`. |
 | **Internal gateway** | Centralize Bedrock credentials (instance role or keys), rate limits at the edge, and audit usage via `logs/usage.jsonl` and `GET /api/v1/admin/usage`. |
 
 Exact UI steps for Cursor and Continue.dev change between versions; look for **custom OpenAI-compatible URL**, **override base URL**, or **BYOK**-style provider settings.
@@ -93,15 +93,21 @@ Persisted files (default under repo root):
 
 ## Production deploy (Linux)
 
+Prepare a Python environment yourself (e.g. `python3 -m venv ~/.venv && pip install -r requirements.txt`). Then install the **systemd** unit:
+
 ```bash
 ./scripts/deploy.sh
 ```
 
-Installs dependencies into `.venv`, installs **systemd** unit (`uvicorn` on **127.0.0.1:8000**), and an **HTTP** nginx site (TLS via `deploy/certbot-init.sh` when you add a domain). Public URL shape: `http://<host>/api/v1/`.
+This only writes **`/etc/systemd/system/llm-deploy.service`** (placeholders: `__REPO_ROOT__`, `__DEPLOY_USER__`, `__VENV__`), reloads systemd, and **enable + restart** `llm-deploy.service`. Default venv path is **`$HOME/.venv`** for the service user; override with **`LLM_DEPLOY_VENV`** or **`VENV`**.
+
+**Turn it off:** `./scripts/deploy.sh disable` (same as `sudo systemctl disable --now llm-deploy.service`). The unit file stays on disk; remove it manually if you want.
+
+**Reverse proxy / TLS:** use `deploy/nginx/llm-deploy.conf` and `deploy/certbot-init.sh` manually if you want nginx and HTTPS — they are not run by `deploy.sh`.
 
 ## Scripts
 
-- `scripts/deploy.sh` — venv, systemd, nginx.
+- `scripts/deploy.sh` — **systemd only** (`disable` turns the service off; no pip/nginx/certbot).
 - `scripts/test_endpoint.sh` — example `curl` calls (adjust host/path if yours differ; this repo serves OpenAI routes under **`/api/v1`**, not bare `/v1`).
 
 ## Suggested GitHub metadata
