@@ -1,0 +1,19 @@
+[project]
+name = "llm-deploy-backend"
+version = "1.0.0"
+description = "OpenAI-compatible Bedrock proxy (FastAPI-Backend-Template layout)."
+requires-python = ">=3.11"
+dynamic = ["dependencies"]
+
+[tool.setuptools]
+packages = ["api", "api.routes", "config", "core", "models"]
+
+[tool.setuptools.dynamic]
+dependencies = { file = ["requirements.txt"] }
+
+[tool.black]
+line-length = 119
+
+[tool.isort]
+profile = "black"
+line_length = 119

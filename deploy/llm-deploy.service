@@ -1,0 +1,16 @@
+[Unit]
+Description=LLM Deploy — OpenAI-compatible Bedrock proxy (uvicorn)
+After=network.target
+
+[Service]
+Type=simple
+User=__DEPLOY_USER__
+Group=__DEPLOY_USER__
+WorkingDirectory=__REPO_ROOT__
+Environment=PATH=__REPO_ROOT__/.venv/bin:/usr/local/bin:/usr/bin
+ExecStart=__REPO_ROOT__/.venv/bin/uvicorn main:backend_app --host 127.0.0.1 --port 8000
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
